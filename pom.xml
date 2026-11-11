@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.primefaces</groupId>
+    <artifactId>mojarra-relative</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <port>8080</port>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.faces</artifactId>
+            <version>4.1.17</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>mojarra-relative</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>glassfish</id>
+            <properties>
+                <!-- GlassFish 8.0.5 includes Mojarra 4.1.17 -->
+                <glassfish.version>8.0.5</glassfish.version>
+            </properties>
+            <build>
+                <defaultGoal>clean package embedded-glassfish:run</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.glassfish.embedded</groupId>
+                        <artifactId>embedded-glassfish-maven-plugin</artifactId>
+                        <version>8.0</version>
+                        <configuration>
+                            <glassfishVersion>${glassfish.version}</glassfishVersion>
+                            <app>${project.build.directory}/${project.build.finalName}.war</app>
+                            <contextRoot>/</contextRoot>
+                            <port>${port}</port>
+                            <fork>true</fork>
+                            <vmArgs>
+                                <vmArg>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9009</vmArg>
+                            </vmArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>jetty</id>
+            <properties>
+                <jetty.version>12.1.12</jetty.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.weld.servlet</groupId>
+                    <artifactId>weld-servlet-core</artifactId>
+                    <version>6.0.4.Final</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <defaultGoal>clean package jetty:run</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jetty.ee11</groupId>
+                        <artifactId>jetty-ee11-maven-plugin</artifactId>
+                        <version>${jetty.version}</version>
+                        <configuration>
+                            <webApp>
+                                <contextPath>/</contextPath>
+                            </webApp>
+                            <scan>0</scan>
+                            <deployMode>FORK</deployMode>
+                            <jvmArgs>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9009</jvmArgs>
+                            <httpConnector>
+                                <host>127.0.0.1</host>
+                                <port>${port}</port>
+                                <idleTimeout>60000</idleTimeout>
+                            </httpConnector>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.eclipse.jetty.ee11</groupId>
+                                <artifactId>jetty-ee11-cdi</artifactId>
+                                <version>${jetty.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
+
+
+
+
